@@ -13,7 +13,6 @@
 class Server_middleware {
     private:
     Socket host_socket;
-    Message_queue_map container;
     std::atomic <bool> stop;
 
     Server_middleware(const Server_middleware&) = delete;

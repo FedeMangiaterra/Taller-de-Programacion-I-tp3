@@ -17,7 +17,7 @@
 #include "server_accepting_thread.h"
 #include "server_middleware.h"
 
-Server_middleware::Server_middleware(const char *service) : host_socket(), container(),
+Server_middleware::Server_middleware(const char *service) : host_socket(),
                                             stop(false) {
     this->host_socket.bind_and_listen(0, service);
 }

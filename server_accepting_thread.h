@@ -24,6 +24,10 @@ class Accepting_thread : public Thread {
     std::atomic <bool>* stop;
     std::vector<Client_thread*> clients;
 
+    void remove_if_finished();
+
+    void stop_all_clients();   
+
     public:
     Accepting_thread(Socket* socket, std::atomic <bool>* stop);
 

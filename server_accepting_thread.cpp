@@ -19,8 +19,30 @@
 Accepting_thread::Accepting_thread(Socket* socket, std::atomic <bool>* stop) :
                     host_socket(socket), stop(stop) {}
 
-void Accepting_thread::run() {
+void Accepting_thread::remove_if_finished() {
     std::vector<Client_thread*>::iterator it;
+    it = this->clients.begin();
+    while (it != this->clients.end()){
+        if ((Client_thread*)(*it)->has_finished()) {
+            (*it)->join();
+            delete ((Client_thread*)(*it));
+            it = this->clients.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void Accepting_thread::stop_all_clients() {
+    size_t i;
+    for (i = 0; i < this->clients.size(); i++){
+        this->clients[i]->end();
+        this->clients[i]->join();
+        delete(this->clients[i]);
+    }
+}
+
+void Accepting_thread::run() {
     while (*this->stop == false) {
         Socket client;
         try {
@@ -31,22 +53,8 @@ void Accepting_thread::run() {
         Client_thread* client_thread = new Client_thread(std::move(client),
                                                     &this->container);
         this->clients.push_back(client_thread);
-        it = this->clients.begin();
         client_thread->start();
-        while (it != this->clients.end()){
-            if ((Client_thread*)(*it)->has_finished()) {
-                (*it)->join();
-                delete ((Client_thread*)(*it));
-                it = this->clients.erase(it);
-            } else {
-                ++it;
-            }
-        }
+        this->remove_if_finished();
     }
-    size_t i;
-    for (i = 0; i < this->clients.size(); i++){
-        this->clients[i]->end();
-        this->clients[i]->join();
-        delete(this->clients[i]);
-    }
+    this->stop_all_clients();
 }
