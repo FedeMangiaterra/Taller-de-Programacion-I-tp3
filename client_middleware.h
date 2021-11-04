@@ -15,10 +15,7 @@ class Client_middleware{
 
     Client_middleware& operator=(const Client_middleware&) = delete;
 
-    void complete_message(std::vector<char>* message,
-                    std::vector<std::string>& args);
-
-    void process_line(char* line, std::vector<char>* message);
+    void process_line(std::string line, std::vector<char>* message);
 
     int get_text();
     

@@ -19,7 +19,7 @@ class Operation {
     std::string queue_name;
     
     public:
-    explicit Operation(Socket* socket);
+    explicit Operation(const std::string& queue_name);
 
     /*Devuelve una referencia al string que contiene el nombre de la cola
     sobre la cual se realiza la operacion*/
@@ -32,7 +32,7 @@ class Operation {
 
 class Define_operation :public Operation {
     public:
-    explicit Define_operation(Socket* socket);
+    explicit Define_operation(const std::string& queue_name);
 
     /*Comprueba si ya existe una cola con el nombre indicado. En
     caso contrario, la crea. Este metodo es atomico*/
@@ -46,7 +46,8 @@ class Push_operation :public Operation {
     std::string text;
 
     public:
-    explicit Push_operation(Socket* socket);
+    explicit Push_operation(const std::string& queue_name,
+                            const std::string& text);
 
     /*Devuelve el mensaje que se debe guardar en la cola*/
     std::string get_text();
@@ -59,7 +60,7 @@ class Push_operation :public Operation {
 
 class Pop_operation :public Operation {
     public:
-    explicit Pop_operation(Socket* socket);
+    explicit Pop_operation(const std::string& queue_name);
 
     /*Si la cola indicada existe, se espera a que tenga algun mensaje
     dentro y luego este es enviado al cliente. Si la cola no existe

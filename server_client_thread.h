@@ -16,8 +16,6 @@ class Client_thread : public Thread {
     Message_queue_map* container;
     std::atomic <bool> stop;
 
-    Operation* create_operation(Socket* client);
-
     public:
     Client_thread(Socket socket,
                 Message_queue_map* container);

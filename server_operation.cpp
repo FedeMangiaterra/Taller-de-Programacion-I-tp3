@@ -10,18 +10,7 @@
 #include "server_message_queue_map.h"
 #include "server_operation.h"
 
-Operation::Operation(Socket* socket) {
-    std::vector<char> queue_length_buffer(2);
-    u_int16_t be_queue_name_length;
-    if (socket->receive(&queue_length_buffer, 2) == -1) return;
-    memcpy(&be_queue_name_length, &queue_length_buffer[0], 2);
-    u_int16_t queue_name_length = ntohs(be_queue_name_length);
-    this->queue_name_length = queue_name_length;
-    std::vector<char> queue_name_buffer(queue_name_length);
-    if (socket->receive(&queue_name_buffer, queue_name_length) == -1) return;
-    this->queue_name.assign(&queue_name_buffer.at(0),
-                            &queue_name_buffer.at(queue_name_length-1)+1);
-}
+Operation::Operation(const std::string& queue_name) : queue_name(queue_name) {}
 
 std::string& Operation::get_queue_name(){
     return this->queue_name;
@@ -29,8 +18,8 @@ std::string& Operation::get_queue_name(){
 
 Operation::~Operation() {} 
 
-Define_operation::Define_operation(Socket* socket) :
-        Operation(socket) {}
+Define_operation::Define_operation(const std::string& queue_name) :
+        Operation(queue_name) {}
 
 void Define_operation::execute(Message_queue_map* container,
                          Socket* socket) {
@@ -38,19 +27,9 @@ void Define_operation::execute(Message_queue_map* container,
     container->assign_if_absent(queue_name);
 }
 
-Push_operation::Push_operation(Socket* socket) :
-        Operation(socket) {
-    std::vector<char> text_length_buffer(2);
-    u_int16_t be_text_length;
-    if (socket->receive(&text_length_buffer, 2) == -1) return;
-    memcpy(&be_text_length, &text_length_buffer[0], 2);
-    u_int16_t text_length = ntohs(be_text_length);
-    this->text_length = text_length;
-    std::vector<char> text_buffer(text_length);
-    if (socket->receive(&text_buffer, text_length) == -1) return;
-    this->text.assign(&text_buffer.at(0),
-                    &text_buffer.at(text_length-1)+1);
-}
+Push_operation::Push_operation(const std::string& queue_name,
+                                const std::string& text) :
+        Operation(queue_name), text(text) {}
 
 std::string Push_operation::get_text(){
     return this->text;
@@ -59,13 +38,12 @@ std::string Push_operation::get_text(){
 void Push_operation::execute(Message_queue_map* container,
                          Socket* socket) {
 const std::string& queue_name = this->get_queue_name();
-if (container->count(queue_name) != 0) {
-        (*container)[queue_name]->push(this->get_text());
-    }
+//Se asume que si se hace push la cola ya existe
+(*container)[queue_name]->push(this->get_text()); 
 }
 
-Pop_operation::Pop_operation(Socket* socket) :
-            Operation(socket) {}
+Pop_operation::Pop_operation(const std::string& queue_name) :
+        Operation(queue_name) {}
 
 void Pop_operation::execute(Message_queue_map* container,
                          Socket* socket) {
